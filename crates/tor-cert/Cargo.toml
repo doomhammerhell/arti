@@ -19,7 +19,7 @@ encode = ["derive_builder"]
 [dependencies]
 caret = { path = "../caret", version = "0.2.0" }
 derive_builder = { version = "0.11.2", package = "derive_builder_fork_arti", optional = true }
-digest = "0.10.0"
+digest = "0.10.5"
 signature = "1"
 thiserror = "1"
 tor-bytes = { path = "../tor-bytes", version = "0.5.1" }

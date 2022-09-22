@@ -970,9 +970,9 @@ dependencies = [
 
 [[package]]
 name = "digest"
-version = "0.10.3"
+version = "0.10.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f2fb860ca6fafa5552fb6d0e816a69c8e49f0908bf524e30a90d97c85892d506"
+checksum = "adfbc57365a37acbd2ebf2b64d7e69bb766e2fea813521ed536f5d0520dcf86c"
 dependencies = [
  "block-buffer 0.10.2",
  "crypto-common",
@@ -1486,7 +1486,7 @@ version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6c49c37c09c17a53d937dfbb742eb3a961d65a994e6bcdcf37e7399d0cc8ab5e"
 dependencies = [
- "digest 0.10.3",
+ "digest 0.10.5",
 ]
 
 [[package]]
@@ -2568,7 +2568,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4cf22754c49613d2b3b119f0e5d46e34a2c628a937e3024b8762de4e7d8c710b"
 dependencies = [
  "byteorder",
- "digest 0.10.3",
+ "digest 0.10.5",
  "num-bigint-dig",
  "num-integer",
  "num-iter",
@@ -2848,7 +2848,7 @@ checksum = "028f48d513f9678cda28f6e4064755b3fbb2af6acd672f2c209b62323f7aea0f"
 dependencies = [
  "cfg-if",
  "cpufeatures",
- "digest 0.10.3",
+ "digest 0.10.5",
  "sha1-asm",
 ]
 
@@ -2882,7 +2882,7 @@ checksum = "899bf02746a2c92bf1053d9327dadb252b01af1f81f90cdb902411f518bc7215"
 dependencies = [
  "cfg-if",
  "cpufeatures",
- "digest 0.10.3",
+ "digest 0.10.5",
 ]
 
 [[package]]
@@ -2891,7 +2891,7 @@ version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0a31480366ec990f395a61b7c08122d99bd40544fdb5abcfc1b06bb29994312c"
 dependencies = [
- "digest 0.10.3",
+ "digest 0.10.5",
  "keccak",
 ]
 
@@ -3357,7 +3357,7 @@ version = "0.5.1"
 dependencies = [
  "arrayref",
  "bytes",
- "digest 0.10.3",
+ "digest 0.10.5",
  "educe",
  "generic-array",
  "getrandom 0.2.7",
@@ -3398,7 +3398,7 @@ dependencies = [
  "base64",
  "caret",
  "derive_builder_fork_arti",
- "digest 0.10.3",
+ "digest 0.10.5",
  "hex-literal",
  "rand 0.8.5",
  "signature",
@@ -3534,7 +3534,7 @@ dependencies = [
 name = "tor-consdiff"
 version = "0.3.2"
 dependencies = [
- "digest 0.10.3",
+ "digest 0.10.5",
  "hex",
  "thiserror",
  "tor-llcrypto",
@@ -3575,7 +3575,7 @@ dependencies = [
  "base64",
  "derive_builder_fork_arti",
  "derive_more",
- "digest 0.10.3",
+ "digest 0.10.5",
  "educe",
  "event-listener",
  "float_eq",
@@ -3700,7 +3700,7 @@ dependencies = [
  "cipher",
  "ctr",
  "curve25519-dalek",
- "digest 0.10.3",
+ "digest 0.10.5",
  "ed25519-dalek",
  "getrandom 0.2.7",
  "hex",
@@ -3761,7 +3761,7 @@ dependencies = [
  "base64ct",
  "bitflags",
  "derive_more",
- "digest 0.10.3",
+ "digest 0.10.5",
  "educe",
  "hex",
  "hex-literal",
@@ -3813,7 +3813,7 @@ dependencies = [
  "cipher",
  "coarsetime",
  "derive_builder_fork_arti",
- "digest 0.10.3",
+ "digest 0.10.5",
  "educe",
  "futures",
  "generic-array",
