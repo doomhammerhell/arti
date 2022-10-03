@@ -1,6 +1,6 @@
 [package]
 name = "tor-linkspec"
-version = "0.5.0"
+version = "0.5.1"
 authors = ["The Tor Project, Inc.", "Nick Mathewson <nickm@torproject.org>"]
 edition = "2021"
 rust-version = "1.56"
@@ -11,15 +11,22 @@ keywords = ["tor", "arti"]
 categories = ["network-programming"]
 repository = "https://gitlab.torproject.org/tpo/core/arti.git/"
 
+[features]
+default = []
+experimental = ["pt-client"]
+pt-client = []
+
 [dependencies]
 base64ct = "1.5.1"
+cfg-if = "1.0.0"
 derive_more = "0.99"
+educe = "0.4.6"
 hex = "0.4"
 serde = { version = "1.0.103", features = ["derive"] }
 strum = { version = "0.24", features = ["derive"] }
 thiserror = "1"
 tor-bytes = { path = "../tor-bytes", version = "0.5.1" }
-tor-llcrypto = { path = "../tor-llcrypto", version = "0.3.4" }
+tor-llcrypto = { path = "../tor-llcrypto", version = "0.3.5" }
 tor-protover = { path = "../tor-protover", version = "0.3.0" }
 
 [dev-dependencies]

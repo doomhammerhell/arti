@@ -363,25 +363,8 @@ impl DangerouslyIntoTorAddr for SocketAddrV6 {
 /// Check whether `hostname` is a valid hostname or not.
 ///
 /// (Note that IPv6 addresses don't follow these rules.)
-///
-/// TODO: Check whether the rules given here are in fact the same rules
-/// as Tor follows, and whether they conform to anything.
 fn is_valid_hostname(hostname: &str) -> bool {
-    /// Check if we have the valid characters for a hostname
-    fn is_valid_char(byte: u8) -> bool {
-        ((b'a'..=b'z').contains(&byte))
-            || ((b'A'..=b'Z').contains(&byte))
-            || ((b'0'..=b'9').contains(&byte))
-            || byte == b'-'
-            || byte == b'.'
-    }
-
-    !(hostname.bytes().any(|byte| !is_valid_char(byte))
-        || hostname.ends_with('-')
-        || hostname.starts_with('-')
-        || hostname.ends_with('.')
-        || hostname.starts_with('.')
-        || hostname.is_empty())
+    hostname_validator::is_valid(hostname)
 }
 
 #[cfg(test)]
@@ -530,6 +513,8 @@ mod test {
         let sa4: SocketAddrV4 = "203.0.133.8:81".parse().unwrap();
         let sa6: SocketAddrV6 = "[2001:db8::43]:82".parse().unwrap();
 
+        // This tests impl DangerouslyIntoTorAddr for &T
+        #[allow(clippy::needless_borrow)]
         check(&(ip, 443), "203.0.133.6:443");
         check((ip, 443), "203.0.133.6:443");
         check((ip4, 444), "203.0.133.7:444");
