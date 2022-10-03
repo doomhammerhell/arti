@@ -3,6 +3,105 @@
 This file describes changes in Arti through the current release.  Once Arti
 is more mature, we may switch to using a separate changelog for each crate.
 
+# Arti 1.0.1 — 3 October  2022
+
+Arti 1.0.1 fixes a few bugs in our previous releases.
+
+This is a fairly small release: Members of our team have spent a lot of
+September at a company meeting, on our vacations, and/or recovering from
+COVID-19. The feature work we have managed to get done is
+largely behind-the-scenes preparation for our anticensorship release,
+which we now hope is coming in early November.
+
+### Breaking changes
+
+- The `Schedule::sleep()*` functions in `tor-rtcompat` now return a
+  `Result`.  This change was part of the fix for part of [#572].
+
+### New features
+
+- Optionally expose an accessor to get the [`CircuitBuilder`] from a
+  [`CircMgr`]. If you don't mind voiding your semver guarantees,
+  you can enable this accessor with the `experimental-api` feature,
+  and use it to build circuits using paths of your own creation.
+  ([!738])
+- We now apply our "safe logging" feature to the console as well, to
+  avoid exposing sensitive information in our console log. ([#553],
+  [!742])
+
+### Major bugfixes
+
+- Fixed a busy loop that could occur when dropping an Arti client, that
+  would cause Arti to busy-loop and use too much CPU. ([#572], [!725])
+- Fixed compilation when building with [`async-std`]. ([!723])
+
+### Documentation
+
+- Our high-level documentation has significantly tidied and revised for
+  clarity and completeness. ([!717])
+- We've updated our documentation for
+  [how to use Arti with Tor Browser]. ([!719])
+
+### Infrastructure
+
+- Our reproducible builds now use Rust 1.63, and the code to make
+  them has been cleaned up a bit. ([!716])
+
+### Cleanups, minor features, and minor bugfixes
+
+- Fix a test failure that would occur on some platforms depending
+  on their inlining decisions. ([#570], [!727])
+- Better listing of platforms that don't have [`getresuid()`], so
+  that we can compile there without breaking. ([!728])
+- Preliminary back-end support for encoding and decoding
+  some messages in the onion service protocol. ([!714], [!735], [!736])
+- Fixes for various newly implemented [Clippy] warnings. ([!729], [!749])
+- The [`RouterDesc`] type now implements `Clone` and
+  `Debug`. ([571e7f9556adf12d])
+- Preliminary internal API designs for most of the logic needed
+  to implement Tor's anticensorship features.  These APIs are unstable,
+  and mostly not implemented yet, but they give us something to fill in.
+  ([#543], [#558], [!740], [!743], [!748])
+
+Thanks to everyone who has contributed to this release, including
+Alexander Færøy, Trinity Pointard, and Yuan Lyu.
+
+Also, our deep thanks to [Zcash Community Grants] for funding the development
+of Arti 1.0.0!
+
+[!714]: https://gitlab.torproject.org/tpo/core/arti/-/merge_requests/714
+[!716]: https://gitlab.torproject.org/tpo/core/arti/-/merge_requests/716
+[!717]: https://gitlab.torproject.org/tpo/core/arti/-/merge_requests/717
+[!719]: https://gitlab.torproject.org/tpo/core/arti/-/merge_requests/719
+[!723]: https://gitlab.torproject.org/tpo/core/arti/-/merge_requests/723
+[!725]: https://gitlab.torproject.org/tpo/core/arti/-/merge_requests/725
+[!727]: https://gitlab.torproject.org/tpo/core/arti/-/merge_requests/727
+[!728]: https://gitlab.torproject.org/tpo/core/arti/-/merge_requests/728
+[!729]: https://gitlab.torproject.org/tpo/core/arti/-/merge_requests/729
+[!735]: https://gitlab.torproject.org/tpo/core/arti/-/merge_requests/735
+[!736]: https://gitlab.torproject.org/tpo/core/arti/-/merge_requests/736
+[!738]: https://gitlab.torproject.org/tpo/core/arti/-/merge_requests/738
+[!740]: https://gitlab.torproject.org/tpo/core/arti/-/merge_requests/740
+[!742]: https://gitlab.torproject.org/tpo/core/arti/-/merge_requests/742
+[!743]: https://gitlab.torproject.org/tpo/core/arti/-/merge_requests/743
+[!748]: https://gitlab.torproject.org/tpo/core/arti/-/merge_requests/748
+[!749]: https://gitlab.torproject.org/tpo/core/arti/-/merge_requests/749
+[#543]: https://gitlab.torproject.org/tpo/core/arti/-/issues/543
+[#553]: https://gitlab.torproject.org/tpo/core/arti/-/issues/553
+[#558]: https://gitlab.torproject.org/tpo/core/arti/-/issues/558
+[#570]: https://gitlab.torproject.org/tpo/core/arti/-/issues/570
+[#572]: https://gitlab.torproject.org/tpo/core/arti/-/issues/572
+[571e7f9556adf12d]: https://gitlab.torproject.org/tpo/core/arti/-/commit/571e7f9556adf12de8c8189ddbfc78c78a534a74
+[Clippy]: https://github.com/rust-lang/rust-clippy
+[Zcash Community Grants]: https://zcashcommunitygrants.org/
+[`CircMgr`]: https://tpo.pages.torproject.net/core/doc/rust/tor_circmgr/struct.CircMgr.html
+[`CircuitBuilder`]: https://tpo.pages.torproject.net/core/doc/rust/tor_circmgr/build/struct.CircuitBuilder.html
+[`RouterDesc`]: https://tpo.pages.torproject.net/core/doc/rust/tor_netdoc/doc/routerdesc/struct.RouterDesc.html
+[`async-std`]: https://docs.rs/async-std/latest/async_std/
+[`getresuid()`]: https://man7.org/linux/man-pages/man2/getresgid.2.html
+[how to use Arti with Tor Browser]: https://gitlab.torproject.org/tpo/core/arti/-/blob/main/crates/arti/README.md#using-arti-with-tor-browser
+
+
 
 # Arti 1.0.0 — 1 September 2022
 

@@ -15,6 +15,23 @@
 //! important to reuse channels when possible.  This crate implements
 //! a [`ChanMgr`] type that can be used to create channels on demand,
 //! and return existing channels when they already exist.
+//! # Compile-time features
+//!
+//! ## Experimental and unstable features
+//!
+//!  Note that the APIs enabled by these features are NOT covered by
+//!  semantic versioning[^1] guarantees: we might break them or remove
+//!  them between patch versions.
+//!
+//! * `pt-client` -- Build with (as yet unimplemented) APIs to support
+//!   pluggable transports.
+//!
+//! * `experimental` -- Build with all experimental features above.
+//!
+//! [^1]: Remember, semantic versioning is what makes various `cargo`
+//! features work reliably. To be explicit: if you want `cargo update`
+//! to _only_ make safe changes, then you cannot enable these
+//! features.
 
 // @@ begin lint list maintained by maint/add_warning @@
 #![cfg_attr(not(ci_arti_stable), allow(renamed_and_removed_lints))]
@@ -56,6 +73,7 @@ mod builder;
 mod config;
 mod err;
 mod event;
+pub mod factory;
 mod mgr;
 #[cfg(test)]
 mod testing;
@@ -274,6 +292,26 @@ impl<R: Runtime> ChanMgr<R> {
         let _: Option<&tor_error::Bug> = r.as_ref().err();
 
         Ok(r?)
+    }
+
+    /// Replace the channel factory that we use for making regular
+    /// channels to the Tor network.
+    ///
+    /// This method can be used to e.g. tell Arti to use a proxy for
+    /// outgoing connections.
+    pub fn set_default_transport(&self, _factory: impl factory::ChannelFactory) {
+        #![allow(clippy::missing_panics_doc, clippy::needless_pass_by_value)]
+        todo!("TODO pt-client: implement this.")
+    }
+
+    /// Replace the transport registry with one that may know about
+    /// more transports.
+    //
+    //  TODO::pt_client (Alternatively, move this functionality into ChanMgr::new?)
+    #[cfg(feature = "pt-client")]
+    pub fn set_transport_registry(&self, _registry: impl factory::TransportRegistry) {
+        #![allow(clippy::missing_panics_doc, clippy::needless_pass_by_value)]
+        todo!("TODO pt-client: implement this.")
     }
 
     /// Watch for things that ought to change the configuration of all channels in the client
