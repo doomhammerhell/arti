@@ -1,22 +1,5 @@
 #![cfg_attr(docsrs, feature(doc_auto_cfg, doc_cfg))]
-//! `tor-consdiff`: Restricted ed diff and patch formats for Tor.
-//!
-//! # Overview
-//!
-//! This crate is part of
-//! [Arti](https://gitlab.torproject.org/tpo/core/arti/), a project to
-//! implement [Tor](https://www.torproject.org/) in Rust.
-//! Tor uses a restricted version of the "ed-style" diff format to
-//! record the difference between a pair of consensus documents, so that
-//! clients can download only the changes since the last document they
-//! have.
-//!
-//! This crate provides a function to apply one of these diffs to an older
-//! consensus document, to get a newer one.
-//!
-//! TODO: Eventually, when we add relay support, we will need to generate
-//! these diffs as well as consume them.
-
+#![doc = include_str!("../README.md")]
 // @@ begin lint list maintained by maint/add_warning @@
 #![cfg_attr(not(ci_arti_stable), allow(renamed_and_removed_lints))]
 #![cfg_attr(not(ci_arti_nightly), allow(unknown_lints))]
@@ -426,8 +409,8 @@ impl<'a> DiffCommand<'a> {
     }
 }
 
-/// Iterator that wraps a line iterator and returns a sequence
-/// Result<DiffCommand>.
+/// Iterator that wraps a line iterator and returns a sequence of
+/// `Result<DiffCommand>`.
 ///
 /// This iterator forces the commands to affect the file in reverse order,
 /// so that we can use the O(n) algorithm for applying these diffs.

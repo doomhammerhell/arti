@@ -1,38 +1,5 @@
 #![cfg_attr(docsrs, feature(doc_auto_cfg, doc_cfg))]
-//! `tor-chanmgr`: Manage a set of channels on the Tor network.
-//!
-//! # Overview
-//!
-//! This crate is part of
-//! [Arti](https://gitlab.torproject.org/tpo/core/arti/), a project to
-//! implement [Tor](https://www.torproject.org/) in Rust.
-//!
-//! In Tor, a channel is a connection to a Tor relay.  It can be
-//! direct via TLS, or indirect via TLS over a pluggable transport.
-//! (For now, only direct channels are supported.)
-//!
-//! Since a channel can be used for more than one circuit, it's
-//! important to reuse channels when possible.  This crate implements
-//! a [`ChanMgr`] type that can be used to create channels on demand,
-//! and return existing channels when they already exist.
-//! # Compile-time features
-//!
-//! ## Experimental and unstable features
-//!
-//!  Note that the APIs enabled by these features are NOT covered by
-//!  semantic versioning[^1] guarantees: we might break them or remove
-//!  them between patch versions.
-//!
-//! * `pt-client` -- Build with (as yet unimplemented) APIs to support
-//!   pluggable transports.
-//!
-//! * `experimental` -- Build with all experimental features above.
-//!
-//! [^1]: Remember, semantic versioning is what makes various `cargo`
-//! features work reliably. To be explicit: if you want `cargo update`
-//! to _only_ make safe changes, then you cannot enable these
-//! features.
-
+#![doc = include_str!("../README.md")]
 // @@ begin lint list maintained by maint/add_warning @@
 #![cfg_attr(not(ci_arti_stable), allow(renamed_and_removed_lints))]
 #![cfg_attr(not(ci_arti_nightly), allow(unknown_lints))]
@@ -77,8 +44,10 @@ pub mod factory;
 mod mgr;
 #[cfg(test)]
 mod testing;
+pub mod transport;
 
 use educe::Educe;
+use factory::ChannelFactory;
 use futures::select_biased;
 use futures::task::SpawnExt;
 use futures::StreamExt;
@@ -111,10 +80,14 @@ use tor_rtcompat::scheduler::{TaskHandle, TaskSchedule};
 /// get one if it exists.
 pub struct ChanMgr<R: Runtime> {
     /// Internal channel manager object that does the actual work.
-    mgr: mgr::AbstractChanMgr<builder::ChanBuilder<R>>,
+    mgr: mgr::AbstractChanMgr<Box<dyn ChannelFactory + Send + Sync + 'static>>,
 
     /// Stream of [`ConnStatus`] events.
     bootstrap_status: event::ConnStatusEvents,
+
+    /// This currently isn't actually used, but we're keeping a PhantomData here
+    /// since probably we'll want it again, sooner or later.
+    runtime: std::marker::PhantomData<fn(R) -> R>,
 }
 
 /// Description of how we got a channel.
@@ -187,13 +160,20 @@ impl<R: Runtime> ChanMgr<R> {
         config: &ChannelConfig,
         dormancy: Dormancy,
         netparams: &NetParameters,
-    ) -> Self {
+    ) -> Self
+    where
+        R: 'static,
+    {
         let (sender, receiver) = event::channel();
-        let builder = builder::ChanBuilder::new(runtime, sender);
+        let sender = Arc::new(std::sync::Mutex::new(sender));
+        let transport = transport::DefaultTransport::new(runtime.clone());
+        let builder = builder::ChanBuilder::new(runtime, transport, sender);
+        let builder: Box<dyn ChannelFactory + Send + Sync + 'static> = Box::new(builder);
         let mgr = mgr::AbstractChanMgr::new(builder, config, dormancy, netparams);
         ChanMgr {
             mgr,
             bootstrap_status: receiver,
+            runtime: std::marker::PhantomData,
         }
     }
 
@@ -300,16 +280,19 @@ impl<R: Runtime> ChanMgr<R> {
     /// This method can be used to e.g. tell Arti to use a proxy for
     /// outgoing connections.
     pub fn set_default_transport(&self, _factory: impl factory::ChannelFactory) {
+        // TODO pt-client: Perhaps we actually want to remove this and have it
+        // be part of the constructor?  The only way to actually implement it is
+        // to make the channel factory in AbstractChanMgr mutable, which seels a
+        // little ugly.  Do we ever want to change this on a _running_ ChanMgr?
         #![allow(clippy::missing_panics_doc, clippy::needless_pass_by_value)]
         todo!("TODO pt-client: implement this.")
     }
 
     /// Replace the transport registry with one that may know about
     /// more transports.
-    //
-    //  TODO::pt_client (Alternatively, move this functionality into ChanMgr::new?)
     #[cfg(feature = "pt-client")]
     pub fn set_transport_registry(&self, _registry: impl factory::TransportRegistry) {
+        // TODO pt-client: See set_default_transport above.
         #![allow(clippy::missing_panics_doc, clippy::needless_pass_by_value)]
         todo!("TODO pt-client: implement this.")
     }

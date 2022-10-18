@@ -122,6 +122,13 @@ impl Display for TransportId {
     }
 }
 
+#[cfg(feature = "pt-client")]
+impl From<PtTransportName> for TransportId {
+    fn from(name: PtTransportName) -> Self {
+        TransportId(Inner::Pluggable(name))
+    }
+}
+
 /// Return true if `s` is a well-formed transport ID.
 ///
 /// According to the specification, a well-formed transport ID follows the same
@@ -383,18 +390,20 @@ impl PtTarget {
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[allow(clippy::exhaustive_enums)]
 // TODO pt-client: I am not in love with this enum name --nm.
+// TODO pt-client: Maybe "ContactMethod" would be better?
 pub enum ChannelMethod {
-    /// Connect to the relay directly at a given address.
-    Direct(std::net::SocketAddr),
+    /// Connect to the relay directly at one of several addresses.
+    Direct(Vec<std::net::SocketAddr>),
 
+    // TODO pt-client: We may want to have a third variant for "Direct" with a
+    // single address. Maybe?
     /// Connect to a bridge relay via a pluggable transport.
     #[cfg(feature = "pt-client")]
     Pluggable(PtTarget),
 }
 
 impl ChannelMethod {
-    /// Return the advertised socket address that this method connects to, if
-    /// there is one.
+    /// Return an advertised socket address that this method connects to.
     ///
     /// NOTE that this is not necessarily an address to which you can open a
     /// TCP connection! If this `ChannelMethod` is using a non-`Direct`
@@ -402,7 +411,7 @@ impl ChannelMethod {
     /// implementation.
     pub fn declared_peer_addr(&self) -> Option<&std::net::SocketAddr> {
         match self {
-            ChannelMethod::Direct(addr) => Some(addr),
+            ChannelMethod::Direct(addr) if !addr.is_empty() => Some(&addr[0]),
 
             #[cfg(feature = "pt-client")]
             ChannelMethod::Pluggable(PtTarget {
@@ -412,6 +421,32 @@ impl ChannelMethod {
 
             #[cfg_attr(not(feature = "pt-client"), allow(unreachable_patterns))]
             _ => None,
+        }
+    }
+
+    /// Return a PtTargetAddr that this ChannelMethod uses.
+    pub fn target_addr(&self) -> Option<PtTargetAddr> {
+        match self {
+            ChannelMethod::Direct(addr) if !addr.is_empty() => Some(PtTargetAddr::IpPort(addr[0])),
+
+            #[cfg(feature = "pt-client")]
+            ChannelMethod::Pluggable(PtTarget { addr, .. }) => Some(addr.clone()),
+
+            _ => None,
+        }
+    }
+
+    /// Return true if this is a method for a direct connection.
+    pub fn is_direct(&self) -> bool {
+        matches!(self, ChannelMethod::Direct(_))
+    }
+
+    /// Return an identifier for the Transport to be used by this `ChannelMethod`.
+    pub fn transport_id(&self) -> TransportId {
+        match self {
+            ChannelMethod::Direct(_) => TransportId::default(),
+            #[cfg(feature = "pt-client")]
+            ChannelMethod::Pluggable(target) => target.transport().clone().into(),
         }
     }
 }

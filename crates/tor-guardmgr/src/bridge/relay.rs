@@ -3,10 +3,10 @@
 use std::sync::Arc;
 
 use tor_linkspec::{
-    ChanTarget, CircTarget, HasAddrs, HasChanMethods, HasRelayIds, RelayIdRef, RelayIdType,
+    ChanTarget, CircTarget, HasAddrs, HasChanMethod, HasRelayIds, RelayIdRef, RelayIdType,
 };
 
-use super::{Bridge, BridgeDesc};
+use super::{BridgeConfig, BridgeDesc};
 
 /// The information about a Bridge that is necessary to connect to it and send
 /// it traffic.
@@ -17,7 +17,7 @@ pub struct BridgeRelay {
     ///
     /// This is _always_ necessary, since it without it we can't know whether
     /// any pluggable transports are needed.
-    bridge_line: Arc<Bridge>,
+    bridge_line: Arc<BridgeConfig>,
 
     /// A descriptor for the bridge.
     ///
@@ -65,8 +65,8 @@ impl HasAddrs for BridgeRelay {
     }
 }
 
-impl HasChanMethods for BridgeRelay {
-    fn chan_methods(&self) -> Vec<tor_linkspec::ChannelMethod> {
+impl HasChanMethod for BridgeRelay {
+    fn chan_method(&self) -> tor_linkspec::ChannelMethod {
         todo!()
     }
 }
@@ -92,8 +92,8 @@ impl<'a> HasAddrs for BridgeRelayWithDesc<'a> {
         &[]
     }
 }
-impl<'a> HasChanMethods for BridgeRelayWithDesc<'a> {
-    fn chan_methods(&self) -> Vec<tor_linkspec::ChannelMethod> {
+impl<'a> HasChanMethod for BridgeRelayWithDesc<'a> {
+    fn chan_method(&self) -> tor_linkspec::ChannelMethod {
         todo!()
     }
 }
