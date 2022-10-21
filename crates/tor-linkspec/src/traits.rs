@@ -4,7 +4,7 @@
 use std::{iter::FusedIterator, net::SocketAddr};
 use tor_llcrypto::pk;
 
-use crate::{ChannelMethod, RelayIdRef, RelayIdType, RelayIdTypeIter};
+use crate::{ChannelMethod, OwnedChanTarget, RelayIdRef, RelayIdType, RelayIdTypeIter};
 
 /// Legacy implementation helper for HasRelayIds.
 ///
@@ -126,7 +126,7 @@ impl<'a, T: HasRelayIds + ?Sized> Iterator for RelayIdIter<'a, T> {
 // RelayIdIter is fused since next_key is fused.
 impl<'a, T: HasRelayIds + ?Sized> FusedIterator for RelayIdIter<'a, T> {}
 
-/// An object that represents a host on the network with known IP addresses.
+/// An object that represents a host on the network which may have known IP addresses.
 pub trait HasAddrs {
     /// Return the addresses listed for this server.
     ///
@@ -134,6 +134,9 @@ pub trait HasAddrs {
     /// connect to directly!  They can be useful for telling where a server is
     /// located, or whether it is "close" to another server, but without knowing
     /// the associated protocols you cannot use these to launch a connection.
+    ///
+    /// Also, for some servers, we may not actually have any relevant addresses;
+    /// in that case, the returned slice is empty.
     ///
     /// To see how to _connect_ to a relay, use [`HasChanMethod::chan_method`]
     //
@@ -172,6 +175,12 @@ impl<D: DirectChanMethodsHelper> HasChanMethod for D {
 /// identity of a relay for the purposes of launching a new
 /// channel.
 pub trait ChanTarget: HasRelayIds + HasAddrs + HasChanMethod {}
+
+impl<T: ChanTarget> From<&T> for OwnedChanTarget {
+    fn from(target: &T) -> Self {
+        OwnedChanTarget::from_chan_target(target)
+    }
+}
 
 /// Information about a Tor relay used to extend a circuit to it.
 ///
