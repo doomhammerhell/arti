@@ -17,6 +17,8 @@ additional_provided['tor-rtcompat'] = [
     ('PreferredRuntime', 'all(feature = "rustls", not(feature = "native-tls"))'),
     ('PreferredRuntime', 'feature = "native-tls"'),
     ('PreferredRuntime', 'all(feature = "rustls", not(feature = "native-tls"))'),
+    ('NativeTlsProvider', 'all(feature = "native-tls", any(feature = "tokio", feature = "async-std"))'),
+    ('RustlsProvider', 'all(feature = "rustls", any(feature = "tokio", feature = "async-std"))'),
 ]
 
 # Sha1 is present both ways
@@ -38,12 +40,6 @@ additional_provided['tor-proto']= [
 additional_required['tor-proto']= [
     ('CtrlMsg', 'feature = "testing"'),
     ('CreateResponse', 'feature = "testing"'),
-]
-
-# I was not able to suppress this in any way I could figure out.
-additional_provided['tor-linkspec'] = [
-    ('{PtTarget, PtTargetInvalidSetting, PtTargetSettings, PtTransportName}',
-     'feature = "pt-client"'),
 ]
 
 # This is detected two times, but only on cfg_attr(docsrs) is enough
