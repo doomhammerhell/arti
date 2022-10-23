@@ -1,108 +1,63 @@
 //! Traits and code to define different mechanisms for building Channels to
 //! different kinds of targets.
 
-use async_trait::async_trait;
-use futures::{AsyncRead, AsyncWrite};
-use tor_linkspec::{ChanTarget, OwnedChanTarget, TransportId};
-use tor_proto::channel::Channel;
-use tor_rtcompat::Runtime;
+pub(crate) mod registry;
 
-/// An object that knows how to build Channels to ChanTargets.
+use std::sync::Arc;
+
+use async_trait::async_trait;
+use tor_linkspec::OwnedChanTarget;
+use tor_proto::channel::Channel;
+
+pub use registry::TransportRegistry;
+
+/// An object that knows how to build `Channels` to `ChanTarget`s.
 ///
 /// This trait must be object-safe.
+///
+/// Every [`ChanMgr`](crate::ChanMgr) has a `ChannelFactory` that it uses to
+/// construct all of its channels.
+///
+/// A `ChannelFactory` can be implemented in terms of a
+/// [`TransportHelper`](crate::transport::TransportHelper), by wrapping it in a
+/// `ChanBuilder`.
 #[async_trait]
 pub trait ChannelFactory {
     /// Open an authenticated channel to `target`.
     ///
-    /// We need this method to take a dyn ChanTarget so it is
-    /// object-safe.
-    //
-    // TODO pt-client: How does this handle multiple addresses? Do we
-    // parallelize here, or at a higher level?
-    fn connect_via_transport(&self, target: &OwnedChanTarget) -> crate::Result<Channel>;
+    /// This method does does not necessarily handle retries or timeouts,
+    /// although some of its implementations may.
+    ///
+    /// This method does not necessarily handle every kind of transport. If the
+    /// caller provides a target with an unsupported
+    /// [`TransportId`](tor_linkspec::TransportId), this method should return
+    /// [`Error::NoSuchTransport`](crate::Error::NoSuchTransport).
+    async fn connect_via_transport(&self, target: &OwnedChanTarget) -> crate::Result<Channel>;
 }
 
-/// A more convenient API for defining transports.  This type's role is to let
-/// the implementor just define a replacement way to pass bytes around, and
-/// return something that we can use in place of a TcpStream.
-///
-/// This is the trait you should probably implement if you want to define a new
-/// [`ChannelFactory`] that performs Tor over TLS over some stream-like type,
-/// and you only want to define the stream-like type.
-//
-// TODO pt-client: I originally had this parameterized on a Runtime.  But I
-// think instead we should have individual TransportHelper implementations be
-// parameterized on a Runtime.
-pub trait TransportHelper {
-    /// The type of the resulting stream.
-    type Stream: AsyncRead + AsyncWrite + Send + Sync + 'static;
-
-    /// Implements the transport: makes a TCP connection (possibly
-    /// tunneled over whatever protocol) if possible.
-    //
-    // TODO pt-client: How does this handle multiple addresses? Do we
-    // parallelize here, or at a higher level?
-    //
-    // TODO pt-client: We could make the address an associated type: would that
-    // help anything?
-    fn connect(&self, target: &impl ChanTarget) -> crate::Result<(OwnedChanTarget, Self::Stream)>;
-}
-
-// We define an implementation so that every TransportHelper
-// can be wrapped as a ChannelFactory...
-impl<H> ChannelFactory for H
-where
-    H: TransportHelper,
-{
-    fn connect_via_transport(&self, target: &OwnedChanTarget) -> crate::Result<Channel> {
-        let _stream = self.connect(target)?;
-
-        // Now do the logic from
-        // `tor_chanmgr::builder::ChanBuilder::build_channel_no_timeout`:
-        // Negotiate TLS, call tor_proto::ChannelBuilder::build, ...
-
-        // TODO: Hang on, where do we get a pre-built TlsConnector in
-        // this method?  We may need a different signature, or some
-        // kind of wrapper type.
-        //
-        // TODO: We may also need access to other stuff, like the contents
-        // of `ChanBuilder`.
-
-        todo!("TODO pt-client: implement this")
-    }
-}
-
-/// A ChannelFactory implementing Tor's default channel protocol.
-#[derive(Clone, Debug)]
-#[non_exhaustive]
-pub struct DefaultChannelFactory<R: Runtime> {
-    /// The runtime that we use to make connections.
-    #[allow(dead_code)] // TODO pt-client: this will be removed.
-    runtime: R,
-}
-impl<R: Runtime> TransportHelper for DefaultChannelFactory<R> {
-    type Stream = R::TcpStream;
-    fn connect(&self, _target: &impl ChanTarget) -> crate::Result<(OwnedChanTarget, Self::Stream)> {
-        // Call connect_one() as in `build_channel_no_timeout`.
-
-        // TODO pt-client: This is another place where we need to figure out
-        // multiple addresses and "happy eyeballs".
-
-        // Call restrict_addr() as in `build_channel_no_timeout`.
-
-        todo!("TODO pt-client: implement this")
-    }
-}
-
-/// An object that knows about one or more ChannelFactories.
 #[async_trait]
-pub trait TransportRegistry {
-    /// Return a ChannelFactory that can make connections via a chosen
-    /// transport, if we know one.
-    //
-    // TODO pt-client: This might need to return an Arc instead of a reference
-    async fn get_factory(&self, transport: &TransportId) -> Option<&dyn ChannelFactory>;
+impl<'a> ChannelFactory for Arc<(dyn ChannelFactory + Send + Sync + 'a)> {
+    async fn connect_via_transport(&self, target: &OwnedChanTarget) -> crate::Result<Channel> {
+        self.as_ref().connect_via_transport(target).await
+    }
 }
 
-// TODO pt-client: implement a DefaultTransportRegistry that returns a
-// DefaultChannelFactory for TransportId::Builtin, and nothing otherwise.
+#[async_trait]
+impl<'a> ChannelFactory for Box<(dyn ChannelFactory + Send + Sync + 'a)> {
+    async fn connect_via_transport(&self, target: &OwnedChanTarget) -> crate::Result<Channel> {
+        self.as_ref().connect_via_transport(target).await
+    }
+}
+
+#[async_trait]
+impl<CF> crate::mgr::AbstractChannelFactory for CF
+where
+    CF: ChannelFactory + Sync,
+{
+    type Channel = tor_proto::channel::Channel;
+    type BuildSpec = OwnedChanTarget;
+
+    async fn build_channel(&self, target: &Self::BuildSpec) -> crate::Result<Self::Channel> {
+        self.connect_via_transport(target).await
+    }
+}

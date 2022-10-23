@@ -135,7 +135,7 @@ pub trait HasAddrs {
     /// located, or whether it is "close" to another server, but without knowing
     /// the associated protocols you cannot use these to launch a connection.
     ///
-    /// To see how to _connect_ to a relay, use [`HasChanMethods::chan_methods`]
+    /// To see how to _connect_ to a relay, use [`HasChanMethod::chan_method`]
     //
     // TODO: This is a questionable API. I'd rather return an iterator
     // of addresses or references to addresses, but both of those options
@@ -144,12 +144,12 @@ pub trait HasAddrs {
 }
 
 /// An object that can be connected to via [`ChannelMethod`]s.
-pub trait HasChanMethods {
+pub trait HasChanMethod {
     /// Return the known ways to contact this
-    // TODO: See notes on HasAddrs above. TODO pt-client: I don't like having
-    // this return a Vec, but I don't see a great alternative. Let's revisit
-    // that.-nickm.
-    fn chan_methods(&self) -> Vec<ChannelMethod>;
+    // TODO: See notes on HasAddrs above.
+    // TODO pt-client: I don't like having this return a new ChannelMethod, but I
+    // don't see a great alternative. Let's revisit that.-nickm.
+    fn chan_method(&self) -> ChannelMethod;
 }
 
 /// Implement `HasChanMethods` for an object with `HasAddr` whose addresses
@@ -160,12 +160,9 @@ pub trait HasChanMethods {
 // should instead suggest that we _only_ have direct methods?
 pub trait DirectChanMethodsHelper: HasAddrs {}
 
-impl<D: DirectChanMethodsHelper> HasChanMethods for D {
-    fn chan_methods(&self) -> Vec<ChannelMethod> {
-        self.addrs()
-            .iter()
-            .map(|a| ChannelMethod::Direct(*a))
-            .collect()
+impl<D: DirectChanMethodsHelper> HasChanMethod for D {
+    fn chan_method(&self) -> ChannelMethod {
+        ChannelMethod::Direct(self.addrs().to_vec())
     }
 }
 
@@ -174,7 +171,7 @@ impl<D: DirectChanMethodsHelper> HasChanMethods for D {
 /// Anything that implements 'ChanTarget' can be used as the
 /// identity of a relay for the purposes of launching a new
 /// channel.
-pub trait ChanTarget: HasRelayIds + HasAddrs + HasChanMethods {}
+pub trait ChanTarget: HasRelayIds + HasAddrs + HasChanMethod {}
 
 /// Information about a Tor relay used to extend a circuit to it.
 ///
@@ -187,10 +184,9 @@ pub trait CircTarget: ChanTarget {
     // doing so correctly would require default associated types.
     fn linkspecs(&self) -> Vec<crate::LinkSpec> {
         let mut result: Vec<_> = self.identities().map(|id| id.to_owned().into()).collect();
-        for method in self.chan_methods().iter() {
-            if let ChannelMethod::Direct(addr) = method {
-                result.push(addr.into());
-            }
+        #[allow(irrefutable_let_patterns)]
+        if let ChannelMethod::Direct(addrs) = self.chan_method() {
+            result.extend(addrs.into_iter().map(crate::LinkSpec::from));
         }
         result
     }

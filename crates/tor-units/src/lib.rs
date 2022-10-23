@@ -1,21 +1,5 @@
 #![cfg_attr(docsrs, feature(doc_auto_cfg, doc_cfg))]
-//! `tor-units` -- Safe wrappers for primitive numeric types.
-//!
-//! # Overview
-//!
-//! This crate is part of
-//! [Arti](https://gitlab.torproject.org/tpo/core/arti/), a project to
-//! implement [Tor](https://www.torproject.org/) in Rust.
-//! It provides safe wrappers for primitive numeric wrappers used in
-//! other parts of Arti.
-//! In particular, it provides:
-//!   * a bounded i32 with both checked and clamping constructors,
-//!   * an integer milliseconds wrapper with conversion to [`Duration`]
-//!   * an integer seconds wrapper with conversion to [`Duration`]
-//!   * a percentage wrapper, to prevent accidental failure
-//!     to divide by 100.
-//!   * a SendMeVersion which can be compared only.
-
+#![doc = include_str!("../README.md")]
 // @@ begin lint list maintained by maint/add_warning @@
 #![cfg_attr(not(ci_arti_stable), allow(renamed_and_removed_lints))]
 #![cfg_attr(not(ci_arti_nightly), allow(unknown_lints))]
@@ -311,9 +295,9 @@ impl<const H: i32, const L: i32> TryFrom<i32> for Percentage<BoundedInt32<H, L>>
 )]
 /// This type represents an integer number of milliseconds.
 ///
-/// The underlying type should usually implement TryInto<u64>.
+/// The underlying type should usually implement `TryInto<u64>`.
 pub struct IntegerMilliseconds<T> {
-    /// Interior Value. Should Implement TryInto<u64> to be useful.
+    /// Interior Value. Should implement `TryInto<u64>` to be useful.
     value: T,
 }
 
@@ -369,9 +353,9 @@ impl<const H: i32, const L: i32> TryFrom<i32> for IntegerMilliseconds<BoundedInt
 )]
 /// This type represents an integer number of seconds.
 ///
-/// The underlying type should usually implement TryInto<u64>.
+/// The underlying type should usually implement `TryInto<u64>`.
 pub struct IntegerSeconds<T> {
-    /// Interior Value. Should Implement TryInto<u64> to be useful.
+    /// Interior Value. Should implement `TryInto<u64>` to be useful.
     value: T,
 }
 
@@ -423,9 +407,9 @@ impl<const H: i32, const L: i32> TryFrom<i32> for IntegerSeconds<BoundedInt32<H,
 #[derive(Copy, Clone, From, FromStr, Display, Debug, PartialEq, Eq, Ord, PartialOrd)]
 /// This type represents an integer number of days.
 ///
-/// The underlying type should usually implement TryInto<u64>.
+/// The underlying type should usually implement `TryInto<u64>`.
 pub struct IntegerDays<T> {
-    /// Interior Value. Should Implement TryInto<u64> to be useful.
+    /// Interior Value. Should Implement `TryInto<u64>` to be useful.
     value: T,
 }
 
