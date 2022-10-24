@@ -41,7 +41,7 @@ tor-socksproto = { path = "../tor-socksproto", version = "0.5.1", default-featur
     "client-handshake",
 ] }
 tor-units = { path = "../tor-units", version = "0.3.1" }
-tracing = "0.1.18"
+tracing = "0.1.37"
 void = "1"
 
 [dev-dependencies]
