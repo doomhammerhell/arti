@@ -575,9 +575,10 @@ impl<T: AsyncRead + AsyncWrite + Send + Unpin + 'static, S: SleepProvider> Verif
         let peer_ip = self
             .target_method
             .as_ref()
-            .and_then(ChannelMethod::declared_peer_addr)
+            .and_then(ChannelMethod::socket_addrs)
+            .and_then(|addrs| addrs.get(0))
             .map(SocketAddr::ip);
-        let netinfo = msg::Netinfo::for_client(peer_ip);
+        let netinfo = msg::Netinfo::from_client(peer_ip);
         self.tls
             .send(netinfo.into())
             .await
@@ -592,8 +593,8 @@ impl<T: AsyncRead + AsyncWrite + Send + Unpin + 'static, S: SleepProvider> Verif
 
         let mut peer_builder = OwnedChanTargetBuilder::default();
         if let Some(target_method) = self.target_method {
-            if let Some(addr) = target_method.declared_peer_addr() {
-                peer_builder.addrs(vec![*addr]);
+            if let Some(addrs) = target_method.socket_addrs() {
+                peer_builder.addrs(addrs.to_owned());
             }
             peer_builder.method(target_method);
         }
@@ -815,7 +816,7 @@ pub(super) mod test {
         R: Runtime,
     {
         let localhost = std::net::IpAddr::V4(std::net::Ipv4Addr::LOCALHOST);
-        let netinfo_cell = msg::Netinfo::for_client(Some(localhost));
+        let netinfo_cell = msg::Netinfo::from_client(Some(localhost));
         let clock_skew = ClockSkew::None;
         UnverifiedChannel {
             link_protocol: 4,
