@@ -19,7 +19,7 @@ zstd = ["async-compression/zstd"]
 routerdesc = []
 
 [dependencies]
-async-compression = { version = "0.3.14", features = ["futures-io", "zlib"] }
+async-compression = { version = "0.3.15", features = ["futures-io", "zlib"] }
 base64 = "0.13.0"
 derive_more = "0.99"
 futures = "0.3.14"
