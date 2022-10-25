@@ -17,7 +17,7 @@ futures = "0.3.14"
 pin-project = "1"
 thiserror = "1"
 tor-rtcompat = { version = "0.7.0", path = "../tor-rtcompat" }
-tracing = "0.1.18"
+tracing = "0.1.37"
 
 [dev-dependencies]
 futures-await-test = "0.3.0"

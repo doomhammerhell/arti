@@ -34,7 +34,7 @@ thiserror = "1"
 toml = "0.5.6"
 tor-basic-utils = { path = "../tor-basic-utils", version = "0.4.0" }
 tor-error = { path = "../tor-error", version = "0.3.2" }
-tracing = "0.1.18"
+tracing = "0.1.37"
 
 [dev-dependencies]
 config = { version = "0.13", default-features = false, features = ["toml"] }
