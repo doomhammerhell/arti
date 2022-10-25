@@ -46,7 +46,7 @@ pub enum RelayMsg {
     Extended2(Extended2),
     /// Partially close a circuit
     Truncate,
-    /// Tell the client the a circuit has been partially closed
+    /// Tell the client that a circuit has been partially closed
     Truncated(Truncated),
     /// Used for padding
     Drop,
@@ -374,6 +374,7 @@ pub struct Data {
 }
 impl Data {
     /// The longest allowable body length for a single data cell.
+    /// Relay command (1) + 'Recognized' (2) + StreamID (2) + Digest (4) + Length (2) = 11
     pub const MAXLEN: usize = CELL_DATA_LEN - 11;
 
     /// Construct a new data cell.
@@ -453,7 +454,7 @@ caret_int! {
         MISC = 1,
         /// Couldn't look up hostname.
         RESOLVEFAILED = 2,
-        /// Remote host refused connection *
+        /// Remote host refused connection.
         CONNECTREFUSED = 3,
         /// Closing a stream because of an exit-policy violation.
         EXITPOLICY = 4,
